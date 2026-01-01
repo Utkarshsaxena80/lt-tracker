@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LeetCode Personal Vault</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        gray: {
+                            900: '#0a0a0a',
+                            800: '#171717',
+                            700: '#262626',
+                            600: '#404040',
+                        },
+                        accent: {
+                            DEFAULT: '#10b981', // Emerald Green
+                            hover: '#059669',
+                            dim: 'rgba(16, 185, 129, 0.1)'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { background-color: #0a0a0a; color: #e5e5e5; font-family: 'Inter', sans-serif; }
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #0a0a0a; }
+        ::-webkit-scrollbar-thumb { background: #262626; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #404040; }
+        
+        .input-box {
+            background-color: #171717;
+            border: 1px solid #262626;
+            color: white;
+            transition: all 0.2s;
+        }
+        .input-box:focus {
+            outline: none;
+            border-color: #10b981;
+            box-shadow: 0 0 0 1px #10b981;
+        }
+    </style>
+</head>
+<body class="min-h-screen p-6 md:p-12">
+
+    <div class="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8">
+        
+        <div class="lg:col-span-4 space-y-6">
+            <div class="bg-gray-800 p-6 rounded-xl border border-gray-700 shadow-2xl">
+                <h2 class="text-xl font-bold mb-4 text-accent flex items-center gap-2">
+                    <i class="ph ph-plus-circle"></i> Log New Problem
+                </h2>
+                
+                <form id="logForm" onsubmit="addProblem(event)" class="space-y-4">
+                    <div class="grid grid-cols-3 gap-3">
+                        <div class="col-span-1">
+                            <label class="text-xs text-gray-400 uppercase font-semibold">Q. No</label>
+                            <input type="number" id="qNumber" required class="input-box w-full p-2 rounded-lg mt-1" placeholder="1">
+                        </div>
+                        <div class="col-span-2">
+                            <label class="text-xs text-gray-400 uppercase font-semibold">Difficulty</label>
+                            <select id="qDifficulty" class="input-box w-full p-2 rounded-lg mt-1 cursor-pointer">
+                                <option value="Easy" class="text-green-400">Easy</option>
+                                <option value="Medium" class="text-yellow-400">Medium</option>
+                                <option value="Hard" class="text-red-400">Hard</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="text-xs text-gray-400 uppercase font-semibold">Problem Name</label>
+                        <input type="text" id="qName" required class="input-box w-full p-2 rounded-lg mt-1" placeholder="e.g. Two Sum">
+                    </div>
+
+                    <div>
+                        <label class="text-xs text-gray-400 uppercase font-semibold">Topic Tags (comma separated)</label>
+                        <input type="text" id="qTags" class="input-box w-full p-2 rounded-lg mt-1" placeholder="e.g. Array, Hashmap, DP">
+                    </div>
+
+                    <div>
+                        <label class="text-xs text-gray-400 uppercase font-semibold">Small Description</label>
+                        <textarea id="qDesc" rows="2" class="input-box w-full p-2 rounded-lg mt-1 text-sm text-gray-300" placeholder="Briefly, what is the problem asking?"></textarea>
+                    </div>
+
+                    <div>
+                        <label class="text-xs text-gray-400 uppercase font-semibold">Algorithm / Approach</label>
+                        <textarea id="qAlgo" required rows="5" class="input-box w-full p-2 rounded-lg mt-1 font-mono text-sm" placeholder="How did you solve it? (Time/Space complexity...)"></textarea>
+                    </div>
+
+                    <div class="flex items-center gap-3 bg-gray-900 p-3 rounded-lg border border-gray-700">
+                        <input type="checkbox" id="qRevision" class="w-5 h-5 accent-emerald-500 rounded cursor-pointer">
+                        <label for="qRevision" class="text-sm text-gray-300 cursor-pointer select-none">Mark for Revision</label>
+                    </div>
+
+                    <button type="submit" class="w-full bg-accent hover:bg-accent-hover text-black font-bold py-3 rounded-lg transition-colors shadow-lg shadow-emerald-900/20">
+                        Save to Vault
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <div class="lg:col-span-8 space-y-6">
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="bg-gray-800 p-6 rounded-xl border border-gray-700 flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-400 text-sm font-medium">Total Solved</p>
+                        <h1 class="text-4xl font-bold text-white mt-1" id="totalCount">0</h1>
+                    </div>
+                    <div class="h-12 w-12 bg-accent-dim rounded-full flex items-center justify-center text-accent">
+                        <i class="ph ph-code text-2xl"></i>
+                    </div>
+                </div>
+                
+                <div class="bg-gray-800 p-6 rounded-xl border border-gray-700 flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-400 text-sm font-medium">Revision Needed</p>
+                        <h1 class="text-4xl font-bold text-yellow-500 mt-1" id="revisionCount">0</h1>
+                    </div>
+                    <div class="h-12 w-12 bg-yellow-500/10 rounded-full flex items-center justify-center text-yellow-500">
+                        <i class="ph ph-warning-circle text-2xl"></i>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex justify-between items-end border-b border-gray-800 pb-2">
+                <h2 class="text-xl font-bold text-white">Problem Archive</h2>
+                <button onclick="clearData()" class="text-xs text-red-500 hover:text-red-400 underline">Delete All Data</button>
+            </div>
+
+            <div id="problemList" class="space-y-4">
+                <div class="text-center py-12 text-gray-600 italic border-2 border-dashed border-gray-800 rounded-xl">
+                    No problems solved yet. Start grinding!
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        // Initialize from LocalStorage
+        let problems = JSON.parse(localStorage.getItem('myLeetCodeVault')) || [];
+
+        // DOM Elements
+        const form = document.getElementById('logForm');
+        const listContainer = document.getElementById('problemList');
+        const totalCountEl = document.getElementById('totalCount');
+        const revCountEl = document.getElementById('revisionCount');
+
+        // Initial Render
+        renderProblems();
+
+        function addProblem(e) {
+            e.preventDefault();
+
+            const problem = {
+                id: Date.now(), // Unique ID
+                number: document.getElementById('qNumber').value,
+                name: document.getElementById('qName').value,
+                difficulty: document.getElementById('qDifficulty').value,
+                tags: document.getElementById('qTags').value,
+                desc: document.getElementById('qDesc').value,
+                algo: document.getElementById('qAlgo').value,
+                revision: document.getElementById('qRevision').checked,
+                date: new Date().toLocaleDateString()
+            };
+
+            // Add to beginning of array
+            problems.unshift(problem);
+            saveAndRender();
+            form.reset();
+        }
+
+        function deleteProblem(id) {
+            if(confirm('Delete this problem log?')) {
+                problems = problems.filter(p => p.id !== id);
+                saveAndRender();
+            }
+        }
+
+        function toggleRevision(id) {
+            const p = problems.find(p => p.id === id);
+            if (p) {
+                p.revision = !p.revision;
+                saveAndRender();
+            }
+        }
+
+        function clearData() {
+            if(confirm('WARNING: This will delete ALL your progress. Are you sure?')) {
+                problems = [];
+                saveAndRender();
+            }
+        }
+
+        function saveAndRender() {
+            localStorage.setItem('myLeetCodeVault', JSON.stringify(problems));
+            renderProblems();
+        }
+
+        function renderProblems() {
+            // Update Counts
+            totalCountEl.innerText = problems.length;
+            revCountEl.innerText = problems.filter(p => p.revision).length;
+
+            // Clear List
+            listContainer.innerHTML = '';
+
+            if (problems.length === 0) {
+                listContainer.innerHTML = `
+                    <div class="text-center py-12 text-gray-600 italic border-2 border-dashed border-gray-800 rounded-xl">
+                        No problems solved yet. Start grinding!
+                    </div>`;
+                return;
+            }
+
+            // Generate Cards
+            problems.forEach(p => {
+                // Difficulty Color Logic
+                let diffClass = '';
+                if(p.difficulty === 'Easy') diffClass = 'text-green-400 bg-green-400/10 border-green-400/20';
+                else if(p.difficulty === 'Medium') diffClass = 'text-yellow-400 bg-yellow-400/10 border-yellow-400/20';
+                else diffClass = 'text-red-400 bg-red-400/10 border-red-400/20';
+
+                // Tags Logic
+                const tagsHtml = p.tags.split(',')
+                    .filter(t => t.trim() !== '')
+                    .map(t => `<span class="text-xs bg-gray-700 text-gray-300 px-2 py-1 rounded border border-gray-600">${t.trim()}</span>`)
+                    .join('');
+
+                const html = `
+                <div class="bg-gray-800 rounded-xl p-5 border ${p.revision ? 'border-yellow-500/50' : 'border-gray-700'} hover:border-accent transition-colors group relative">
+                    
+                    ${p.revision ? '<div class="absolute -top-3 -right-3 bg-yellow-500 text-black text-xs font-bold px-3 py-1 rounded-full shadow-lg z-10">REVISION NEEDED</div>' : ''}
+
+                    <div class="flex justify-between items-start mb-3">
+                        <div class="flex items-center gap-3">
+                            <span class="text-xl font-mono font-bold text-gray-500">#${p.number}</span>
+                            <h3 class="text-xl font-bold text-white">${p.name}</h3>
+                            <span class="px-2 py-0.5 rounded text-xs border ${diffClass}">${p.difficulty}</span>
+                        </div>
+                        <div class="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <button onclick="toggleRevision(${p.id})" class="text-gray-400 hover:text-yellow-400 p-1" title="Toggle Revision">
+                                <i class="ph ${p.revision ? 'ph-check-circle' : 'ph-warning-circle'} text-xl"></i>
+                            </button>
+                            <button onclick="deleteProblem(${p.id})" class="text-gray-400 hover:text-red-500 p-1" title="Delete">
+                                <i class="ph ph-trash text-xl"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    ${p.desc ? `<p class="text-gray-400 text-sm mb-4 border-l-2 border-gray-600 pl-3 italic">${p.desc}</p>` : ''}
+
+                    <div class="bg-gray-900 rounded-lg p-4 border border-gray-700 mb-4">
+                        <p class="text-xs text-accent font-bold uppercase mb-1">Algorithm Used</p>
+                        <p class="text-gray-300 font-mono text-sm whitespace-pre-wrap">${p.algo}</p>
+                    </div>
+
+                    <div class="flex items-center justify-between mt-2">
+                        <div class="flex flex-wrap gap-2">
+                            ${tagsHtml}
+                        </div>
+                        <span class="text-xs text-gray-600">${p.date}</span>
+                    </div>
+                </div>
+                `;
+                listContainer.innerHTML += html;
+            });
+        }
+    </script>
+</body>
+</html>
